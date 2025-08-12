@@ -902,26 +902,33 @@
     const bonusPP = Math.floor(basePP * state.upgrades.prestigeBonus);
     return basePP + bonusPP;
   }
-  function updateResourcesDisplay() {
-  moneyDisplay.innerHTML = `💰 Coins: ${formatNumber(state.coins)}`;
-  ppDisplay.innerHTML = `⭐ Prestige Points: ${formatNumber(state.prestigePoints)}`;
-  
-  // Update progress bar inline
-  const progress = state.totalCoinsEarned.value / state.prestigeThreshold.value;
-  const progressPct = Math.min(100, progress * 100);
-  progressBar.style.width = progressPct + '%';
-  
-  if (progress >= 1) {
-    progressText.innerHTML = '';
-    const prestigeBtn = document.createElement('button');
-    prestigeBtn.textContent = '✨ PRESTIGE NOW! ✨';
-    prestigeBtn.style.cssText = 'background: linear-gradient(135deg, #9a5aa0, #ba7ac0); border: 2px solid #da9ae0; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: inherit;';
+
+  // === PRESTIGE BUTTON MANAGEMENT ===
+  let prestigeButton = null;
+  let prestigeButtonClickHandler = null;
+
+  function createPrestigeButton() {
+    if (prestigeButton) {
+      return prestigeButton; // Return existing button if already created
+    }
+
+    prestigeButton = document.createElement('button');
+    prestigeButton.textContent = '✨ PRESTIGE NOW! ✨';
+    prestigeButton.style.cssText = 'background: linear-gradient(135deg, #9a5aa0, #ba7ac0); border: 2px solid #da9ae0; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: inherit;';
+    prestigeButton.id = 'prestigeButton'; // Add ID for easier debugging
     
-    prestigeBtn.addEventListener('click', function() {
+    // Create the click handler function only once
+    prestigeButtonClickHandler = function() {
+      // Add safety check to prevent multiple rapid clicks
+      if (prestigeButton.disabled) return;
+      
       if (!canPrestige()) {
         alert('⭐ Not ready for prestige yet!');
         return;
       }
+      
+      // Temporarily disable button to prevent multiple clicks
+      prestigeButton.disabled = true;
       
       const basePP = Math.floor(Math.sqrt(state.totalCoinsEarned.value / 1000));
       const bonusPP = Math.floor(basePP * state.upgrades.prestigeBonus);
@@ -961,6 +968,9 @@
         // Update UI
         inputAutoRoll.checked = false;
         
+        // Clear the prestige button since we're resetting
+        cleanupPrestigeButton();
+        
         // Re-apply skill tree bonuses
         for (const node of state.skillTree.nodes) {
           if (node.bought) {
@@ -984,16 +994,52 @@
           addCombatLog(`🌟 PRESTIGE COMPLETE! Gained ${totalPP} PP!`);
         }
         alert(`🌟 Prestige completed! You gained ${totalPP} Prestige Points!`);
+      } else {
+        // Re-enable button if user cancelled
+        prestigeButton.disabled = false;
       }
-    });
+    };
     
-    progressText.appendChild(prestigeBtn);
-    progressText.style.animation = 'glow 1s ease-in-out infinite alternate';
-  } else {
-    progressText.textContent = `Progress to Prestige: ${progressPct.toFixed(1)}%`;
-    progressText.style.animation = 'none';
+    // Add the event listener only once
+    prestigeButton.addEventListener('click', prestigeButtonClickHandler);
+    
+    return prestigeButton;
   }
-}
+
+  function cleanupPrestigeButton() {
+    if (prestigeButton && prestigeButtonClickHandler) {
+      prestigeButton.removeEventListener('click', prestigeButtonClickHandler);
+    }
+    prestigeButton = null;
+    prestigeButtonClickHandler = null;
+  }
+
+  function updateResourcesDisplay() {
+    moneyDisplay.innerHTML = `💰 Coins: ${formatNumber(state.coins)}`;
+    ppDisplay.innerHTML = `⭐ Prestige Points: ${formatNumber(state.prestigePoints)}`;
+    
+    // Update progress bar inline
+    const progress = state.totalCoinsEarned.value / state.prestigeThreshold.value;
+    const progressPct = Math.min(100, progress * 100);
+    progressBar.style.width = progressPct + '%';
+    
+    if (progress >= 1) {
+      // Only clear and recreate if we don't already have a prestige button
+      if (!prestigeButton || !progressText.contains(prestigeButton)) {
+        progressText.innerHTML = '';
+        const button = createPrestigeButton();
+        progressText.appendChild(button);
+        progressText.style.animation = 'glow 1s ease-in-out infinite alternate';
+      }
+    } else {
+      // Clean up prestige button when not eligible for prestige
+      if (prestigeButton && progressText.contains(prestigeButton)) {
+        cleanupPrestigeButton();
+      }
+      progressText.innerHTML = `Progress to Prestige: ${progressPct.toFixed(1)}%`;
+      progressText.style.animation = 'none';
+    }
+  }
 
 	// === DICE SPECIAL ABILITIES ===
 const diceSpecialAbilities = {
