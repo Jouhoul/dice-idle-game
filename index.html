@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Idle Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="gameContainer">
+        <!-- Game Canvas Area -->
+        <div id="gameArea">
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+            <div id="gameStats">
+                <div>Coins: <span id="coinCount">0</span></div>
+                <div>Level: <span id="playerLevel">1</span></div>
+                <div>XP: <span id="playerXP">0</span></div>
+            </div>
+        </div>
+
+        <!-- Main UI Controls at Bottom -->
+        <div id="mainUI">
+            <button id="rollDiceBtn" class="ui-button">Roll Dice</button>
+            <button id="shopBtn" class="ui-button">Shop</button>
+            <button id="skillsBtn" class="ui-button">Skills</button>
+            <button id="combatBtn" class="ui-button" style="display: none;">Combat</button>
+            <button id="settingsBtn" class="ui-button">Settings</button>
+        </div>
+
+        <!-- Floating Panels -->
+        <div id="shopPanel" class="panel" style="display: none;">
+            <div class="panel-header">
+                <h3>Shop</h3>
+                <button class="close-btn" onclick="closePanel('shopPanel')">&times;</button>
+            </div>
+            <div class="panel-content">
+                <div class="shop-item">
+                    <h4>Better Dice</h4>
+                    <p>Increase dice roll range</p>
+                    <button class="buy-btn">Buy for 100 coins</button>
+                </div>
+                <div class="shop-item">
+                    <h4>Lucky Charm</h4>
+                    <p>Increase chance of high rolls</p>
+                    <button class="buy-btn">Buy for 250 coins</button>
+                </div>
+                <div class="shop-item">
+                    <h4>Auto Roller</h4>
+                    <p>Automatically roll dice every 2 seconds</p>
+                    <button class="buy-btn">Buy for 500 coins</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="skillsPanel" class="panel" style="display: none;">
+            <div class="panel-header">
+                <h3>Skills</h3>
+                <button class="close-btn" onclick="closePanel('skillsPanel')">&times;</button>
+            </div>
+            <div class="panel-content">
+                <div class="skill-item">
+                    <h4>Dice Mastery</h4>
+                    <p>Level: <span class="skill-level">1</span></p>
+                    <div class="skill-bar">
+                        <div class="skill-progress" style="width: 30%"></div>
+                    </div>
+                    <button class="upgrade-btn">Upgrade</button>
+                </div>
+                <div class="skill-item">
+                    <h4>Coin Magnet</h4>
+                    <p>Level: <span class="skill-level">1</span></p>
+                    <div class="skill-bar">
+                        <div class="skill-progress" style="width: 15%"></div>
+                    </div>
+                    <button class="upgrade-btn">Upgrade</button>
+                </div>
+                <div class="skill-item">
+                    <h4>Fortune</h4>
+                    <p>Level: <span class="skill-level">1</span></p>
+                    <div class="skill-bar">
+                        <div class="skill-progress" style="width: 45%"></div>
+                    </div>
+                    <button class="upgrade-btn">Upgrade</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="combatPanel" class="panel" style="display: none;">
+            <div class="panel-header">
+                <h3>Combat</h3>
+                <button class="close-btn" onclick="closePanel('combatPanel')">&times;</button>
+            </div>
+            <div class="panel-content">
+                <div class="combat-area">
+                    <div class="player-info">
+                        <h4>Player</h4>
+                        <div class="health-bar">
+                            <div class="health-fill" style="width: 100%"></div>
+                        </div>
+                        <p>HP: 100/100</p>
+                    </div>
+                    <div class="enemy-info">
+                        <h4>Goblin</h4>
+                        <div class="health-bar">
+                            <div class="health-fill enemy" style="width: 75%"></div>
+                        </div>
+                        <p>HP: 75/100</p>
+                    </div>
+                    <button id="attackBtn" class="attack-btn">Attack!</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="settingsPanel" class="panel" style="display: none;">
+            <div class="panel-header">
+                <h3>Settings</h3>
+                <button class="close-btn" onclick="closePanel('settingsPanel')">&times;</button>
+            </div>
+            <div class="panel-content">
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="soundEnabled" checked>
+                        Enable Sound Effects
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="autoSaveEnabled" checked>
+                        Auto Save Game
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>
+                        Volume: <input type="range" id="volumeSlider" min="0" max="100" value="50">
+                        <span id="volumeValue">50%</span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <button id="resetGameBtn" class="reset-btn">Reset Game</button>
+                </div>
+                <div class="setting-item">
+                    <button id="exportSaveBtn" class="export-btn">Export Save</button>
+                    <button id="importSaveBtn" class="import-btn">Import Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
