@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dice Idle - Enhanced</title>
+<style>
+  /* === RESET & BASIC === */
+  body, html {
+    margin:0; padding:0; overflow:hidden;
+    background: linear-gradient(180deg, #0a0f1e 0%, #1a2c4a 50%, #2d4a73 100%);
+    font-family: 'Courier New', monospace;
+    color:#fff;
+    user-select:none;
+  }
+
+  #gameCanvas {
+    background: linear-gradient(180deg, #87ceeb 0%, #98d8ff 30%, #32cd32 60%, #228b22 100%);
+    background-image: 
+      url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjMjI4YjIyIiBmaWxsLW9wYWNpdHk9IjAuMyIvPgo8cmVjdCB4PSIwIiB5PSI1NiIgd2lkdGg9IjY0IiBoZWlnaHQ9IjgiIGZpbGw9IiMzMmNkMzIiLz4KPHJlY3QgeD0iOCIgeT0iNDgiIHdpZHRoPSI4IiBoZWlnaHQ9IjE2IiBmaWxsPSIjOGI0NTEzIi8+CjxyZWN0IHg9IjQwIiB5PSI0MCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjI0IiBmaWxsPSIjOGI0NTEzIi8+CjxyZWN0IHg9IjQwIiB5PSIzMiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjgiIGZpbGw9IiMzMmNkMzIiLz4KPC9zdmc+'),
+      url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8L3N2Zz4=');
+    display: block;
+    margin: auto;
+    image-rendering: pixelated;
+    box-shadow: inset 0 0 50px rgba(0,0,0,0.3);
+  }
+
+  #ui {
+    position: fixed;
+    bottom: 10px; left: 50%; transform: translateX(-50%);
+    width: 960px;
+    max-width: 95vw;
+    font-size: 12px;
+    user-select:none;
+    background: linear-gradient(135deg, #1a2a4a, #2a3a5a);
+    border: 3px solid #5a7aa0;
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 0 20px rgba(90, 122, 160, 0.5);
+  }
+
+  .btn {
+    font-family: 'Courier New', monospace;
+    cursor: pointer;
+    display: inline-block;
+    background: linear-gradient(135deg, #3a5a8a, #2a4a7a);
+    border: 3px solid #5a7aa0;
+    color: #fff;
+    padding: 10px 16px;
+    margin: 0 6px 6px 0;
+    transition: all 0.3s ease;
+    text-align: center;
+    user-select:none;
+    white-space: nowrap;
+    border-radius: 8px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    font-weight: bold;
+  }
+
+  .btn:hover:not(.disabled) {
+    background: linear-gradient(135deg, #4a6a9a, #3a5a8a);
+    border-color: #6a8ab0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+
+  .btn.disabled {
+    background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+    border-color: #3a3a3a;
+    cursor: default;
+    color: #666;
+    transform: none;
+    box-shadow: none;
+  }
+
+  #rollBtn {
+    font-size: 28px;
+    font-weight: bold;
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    border-color: #ff8c42;
+    width: 280px;
+    height: 80px;
+    line-height: 80px;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    border-radius: 15px;
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from { box-shadow: 0 0 10px rgba(255, 107, 53, 0.5); }
+    to { box-shadow: 0 0 20px rgba(255, 107, 53, 0.8), 0 0 30px rgba(255, 107, 53, 0.3); }
+  }
+
+  #rollBtn:hover:not(.disabled) {
+    background: linear-gradient(135deg, #ff8c42, #ffa500);
+  }
+
+  #rollBtn.disabled {
+    background: linear-gradient(135deg, #333, #222) !important;
+    border-color: #444 !important;
+    text-shadow: none;
+    animation: none;
+  }
+
+  #rollCooldownBar {
+    width: 280px;
+    height: 12px;
+    background: linear-gradient(135deg, #1a1a2a, #2a2a3a);
+    border: 2px solid #5a7aa0;
+    margin-top: -10px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  #rollCooldownFill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b35, #f7931e);
+    width: 0%;
+    transition: width 0.1s linear;
+    border-radius: 6px;
+    box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+  }
+
+  #progressBar {
+    width: 280px;
+    height: 20px;
+    background: linear-gradient(135deg, #1a1a2a, #2a2a3a);
+    border: 2px solid #9a5aa0;
+    margin: 10px 0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  #progressFill {
+    height: 100%;
+    background: linear-gradient(90deg, #9a5aa0, #ba7ac0);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(154, 90, 160, 0.5);
+  }
+
+  #moneyDisplay, #ppDisplay {
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 8px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    background: linear-gradient(135deg, #2a3a5a, #3a4a6a);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 2px solid #5a7aa0;
+    display: inline-block;
+    margin-right: 10px;
+  }
+
+  #diceDisplay {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: linear-gradient(135deg, #2a3a5a, #3a4a6a);
+    border-radius: 10px;
+    border: 2px solid #5a7aa0;
+  }
+
+  #diceDisplay .die {
+    display: inline-block;
+    width: 60px; height: 60px;
+    margin-right: 12px;
+    image-rendering: pixelated;
+    cursor: default;
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+
+  #diceDisplay .die.rolling {
+    animation: diceRoll 0.6s ease-in-out;
+  }
+
+  @keyframes diceRoll {
+    0% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(90deg) scale(1.2); }
+    50% { transform: rotate(180deg) scale(1.1); }
+    75% { transform: rotate(270deg) scale(1.2); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  .die-face {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    border: 3px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    position: relative;
+  }
+
+  .d4 { background: linear-gradient(135deg, #ff6b6b, #ee5a52); }
+  .d6 { background: linear-gradient(135deg, #4ecdc4, #44a08d); }
+  .d8 { background: linear-gradient(135deg, #45b7d1, #3498db); }
+  .d10 { background: linear-gradient(135deg, #96ceb4, #85c1a4); }
+  .d12 { background: linear-gradient(135deg, #feca57, #ff9ff3); }
+  .d20 { background: linear-gradient(135deg, #fd79a8, #e84393); }
+
+  #tabs {
+    margin-top: 12px;
+    user-select:none;
+  }
+
+  #tabs .tabBtn {
+    margin-right: 15px;
+    font-size: 16px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #2a3a5a, #3a4a6a);
+    border: 3px solid #5a7aa0;
+    color: #a0c0ff;
+    border-radius: 10px 10px 0 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+  }
+
+  #tabs .tabBtn.active {
+    background: linear-gradient(135deg, #5a7aa0, #6a8ab0);
+    color: white;
+    border-bottom: none;
+    cursor: default;
+    transform: translateY(-3px);
+  }
+
+   .panel {
+  position: fixed;
+  background: linear-gradient(135deg, #1a2a4a, #2a3a5a);
+  border: 3px solid #5a7aa0;
+  border-radius: 15px;
+  padding: 20px;
+  overflow-y: auto;
+  font-size: 14px;
+  display: none;
+  user-select: none;
+  z-index: 9999;
+  box-shadow: 0 0 30px rgba(90, 122, 160, 0.3);
+  color: #a0b5ff;
+}
+
+#panelShop {
+  top: 20px;
+  left: 20px;
+  width: 350px;
+  height: 500px;
+}
+
+#panelSkillTree {
+  top: 20px;
+  right: 20px;
+  width: 350px;
+  height: 500px;
+}
+
+#settingsPanel {
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 350px;
+  height: 500px;
+}
+
+#combatPanel {
+  top: 20px;
+  left: 400px;
+  width: 350px;
+  height: 500px;
+}
+
+.panel.open, #combatPanel.open, #settingsPanel.open {
+  display: block !important;
+}
+
+  .panel.open {
+    display: block;
+  }
+
+  .panel h2 {
+    margin-top: 0;
+    font-size: 24px;
+    color: #a8caff;
+    text-align: center;
+    margin-bottom: 20px;
+    user-select:none;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .upgrade, .skillNode, .diceOption {
+    background: linear-gradient(135deg, #2a3a5a, #3a4a6a);
+    border: 3px solid #4a5a7a;
+    border-radius: 10px;
+    padding: 12px 15px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    user-select:none;
+    transition: all 0.3s ease;
+  }
+
+  .upgrade.disabled, .skillNode.disabled, .diceOption.disabled {
+    background: linear-gradient(135deg, #1a1a2a, #2a2a3a);
+    border-color: #3a3a4a;
+    cursor: default;
+    color: #666;
+  }
+
+  .upgrade:hover:not(.disabled), .skillNode:hover:not(.disabled), .diceOption:hover:not(.disabled) {
+    background: linear-gradient(135deg, #4a5a7a, #5a6a8a);
+    border-color: #6a7a9a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+
+  .upgrade-title, .skillNode-title, .diceOption-title {
+    font-weight: bold;
+    color: #cbd7ff;
+    margin-bottom: 5px;
+    user-select:none;
+    font-size: 16px;
+  }
+
+  .upgrade-desc, .skillNode-desc, .diceOption-desc {
+    font-size: 13px;
+    color: #a5b5e0;
+    margin-bottom: 8px;
+  }
+
+  .cost {
+    font-weight: bold;
+    color: #ffa500;
+    font-size: 14px;
+  }
+
+
+  #combatPanel.open {
+    display: block;
+  }
+
+  #playerHpBar, #monsterHpBar {
+    background: linear-gradient(135deg, #2a2a4a, #3a3a5a);
+    height: 20px;
+    border-radius: 10px;
+    border: 2px solid #5a7aa0;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  #playerHpFill {
+    height: 100%;
+    background: linear-gradient(90deg, #27ae60, #2ecc71);
+    width: 100%;
+    border-radius: 8px;
+    transition: width 0.3s ease;
+  }
+
+  #monsterHpFill {
+    height: 100%;
+    background: linear-gradient(90deg, #e74c3c, #c0392b);
+    width: 100%;
+    border-radius: 8px;
+    transition: width 0.3s ease;
+  }
+
+  #combatLog {
+    height: 200px;
+    background: linear-gradient(135deg, #1a1a3a, #2a2a4a);
+    border: 2px solid #5a7aa0;
+    padding: 10px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #cfe0ff;
+    white-space: pre-wrap;
+    border-radius: 8px;
+  }
+
+  #monsterDisplay {
+    text-align: center;
+    margin: 15px 0;
+    padding: 15px;
+    background: linear-gradient(135deg, #2a3a5a, #3a4a6a);
+    border-radius: 10px;
+    border: 2px solid #5a7aa0;
+  }
+
+  .monster-sprite {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 10px;
+    image-rendering: pixelated;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border-radius: 8px;
+  }
+
+  .ore {
+    display: inline-block;
+    width: 32px; height: 32px;
+    margin-right: 8px;
+    vertical-align: middle;
+    filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
+    image-rendering: pixelated;
+  }
+
+  .ore-count {
+    font-weight: bold;
+    color: #ffa500;
+    vertical-align: middle;
+    font-size: 16px;
+  }
+  
+  #footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    font-size: 11px;
+    color: #5a7aa0;
+    text-align: center;
+    padding: 8px 0;
+    font-family: 'Courier New', monospace;
+    user-select:none;
+    background: linear-gradient(135deg, #1a2a4a, #2a3a5a);
+    border-top: 2px solid #5a7aa0;
+  }
+
+  .bought {
+    background: linear-gradient(135deg, #2a5a3a, #3a6a4a) !important;
+    border-color: #5a9a6a !important;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas" width="960" height="540"></canvas>
+
+<div id="ui" role="region" aria-label="Game controls and info">
+  <div>
+    <div id="moneyDisplay" aria-live="polite">💰 Coins: 0</div>
+    <div id="ppDisplay" aria-live="polite">⭐ Prestige Points: 0</div>
+  </div>
+  <div id="diceDisplay" aria-label="Your dice"></div>
+  <button id="rollBtn" aria-label="Roll Dice">🎲 ROLL DICE 🎲</button>
+  <div id="rollCooldownBar" aria-hidden="true"><div id="rollCooldownFill"></div></div>
+  
+  <div id="progressBar" title="Progress to next prestige">
+    <div id="progressFill"></div>
+  </div>
+  <div id="progressText" style="text-align: center; color: #ba7ac0; font-size: 14px; font-weight: bold;">Progress to Prestige: 0%</div>
+
+  <div id="tabs" role="tablist" aria-label="Game menus">
+  <button class="tabBtn" id="btnShop" role="tab" aria-selected="true" aria-controls="panelShop">🛒 Shop</button>
+  <button class="tabBtn" id="btnSkillTree" role="tab" aria-selected="false" aria-controls="panelSkillTree">🌟 Skills</button>
+  <button class="tabBtn" id="btnCombat" role="tab" aria-selected="false" aria-controls="combatPanel" style="display: none;">⚔️ Combat</button>
+  <button class="tabBtn" id="btnSettings" role="tab" aria-selected="false" aria-controls="settingsPanel">⚙️ Settings</button>
+</div>
+
+<div id="panelShop" class="panel open" role="region" aria-label="Shop upgrades" tabindex="0" aria-hidden="false">
+  <h2>🛒 Shop Upgrades</h2>
+  <div id="shopUpgradesList" tabindex="0"></div>
+</div>
+
+<div id="panelSkillTree" class="panel" role="region" aria-label="Prestige skill tree" tabindex="0" aria-hidden="true">
+  <h2>🌟 Prestige Skill Tree</h2>
+  <div id="skillTreeNodes" tabindex="0"></div>
+  <div id="diceResearchSection" style="margin-top:20px;">
+    <h3>🎲 Dice Research</h3>
+    <p>Spend Prestige Points to unlock new dice!</p>
+    <div id="diceResearchOptions"></div>
+  </div>
+</div>
+
+<div id="combatPanel" role="region" aria-label="Combat panel" tabindex="0">
+  <h2>⚔️ Monster Combat</h2>
+  
+  <div>
+    <div style="color: #27ae60; font-weight: bold; margin-bottom: 5px;">Player HP</div>
+    <div id="playerHpBar" aria-label="Player health">
+      <div id="playerHpFill"></div>
+    </div>
+  </div>
+  
+  <div id="monsterDisplay">
+    <div class="monster-sprite" id="monsterSprite"></div>
+    <div id="monsterName" style="font-weight: bold; color: #e74c3c; font-size: 16px;"></div>
+    <div id="monsterLevel" style="color: #ffa500; font-size: 14px;"></div>
+  </div>
+  
+  <div>
+    <div style="color: #e74c3c; font-weight: bold; margin-bottom: 5px;">Monster HP</div>
+    <div id="monsterHpBar" aria-label="Monster health">
+      <div id="monsterHpFill"></div>
+    </div>
+  </div>
+  
+  <button id="btnFightRoll" class="btn">⚔️ Attack with Dice!</button>
+  <div id="combatLog" aria-live="polite" aria-atomic="true" tabindex="0"></div>
+  
+  <div id="craftingPanel">
+    <h3>⛏️ Ores & Crafting</h3>
+    <div id="oresDisplay"></div>
+    <button id="btnCraftWeapon" class="btn">🔨 Craft Weapon (Iron: 5, Silver: 3, Gold: 1)</button>
+  </div>
+</div>
+
+<div id="settingsPanel" class="panel" role="region" aria-label="Settings" tabindex="0">
+  <h2>⚙️ Settings</h2>
+  <label for="inputCooldownSpeed">Roll Cooldown (seconds): <span id="cooldownValue">2.00</span></label><br />
+  <input type="range" id="inputCooldownSpeed" min="0.5" max="5" step="0.01" value="2" /><br /><br />
+  <label><input type="checkbox" id="inputAutoRoll" /> Auto-roll dice when cooldown ends</label><br /><br />
+  
+  <div style="border-top: 2px solid #5a7aa0; margin: 20px 0; padding-top: 20px;">
+    <h3 style="color: #ff6b35; text-align: center;">🔧 Developer Mode</h3>
+    <label><input type="checkbox" id="inputDevMode" /> Enable Developer Mode</label><br /><br />
+    <div id="devModeButtons" style="display: none;">
+      <button id="btnAddMoney" class="btn" style="width:100%; margin-bottom:10px;">💰 Add 1M Coins</button>
+      <button id="btnAddPP" class="btn" style="width:100%; margin-bottom:10px;">⭐ Add 100 PP</button>
+      <button id="btnUnlockAllDice" class="btn" style="width:100%; margin-bottom:10px;">🎲 Unlock All Dice</button>
+      <button id="btnMaxUpgrades" class="btn" style="width:100%; margin-bottom:10px;">⬆️ Max All Upgrades</button>
+      <button id="btnResetProgress" class="btn" style="width:100%; background: linear-gradient(135deg, #e74c3c, #c0392b);">🔄 Reset All Progress</button>
+    </div>
+  </div>
+  
+  <div style="border-top: 2px solid #5a7aa0; margin: 20px 0; padding-top: 20px;">
+    <button id="btnSaveGame" class="btn" style="width:100%;">💾 Save Game</button>
+    <button id="btnLoadGame" class="btn" style="width:100%;">📁 Load Game</button><br /><br />
+    <textarea id="importExportArea" style="width:100%;height:100px; background:#1a2140; color:#a0b5ff; border:2px solid #3858a4; resize:none;" aria-label="Save import/export"></textarea><br />
+    <button id="btnExportSave" class="btn" style="width:48%;">📤 Export</button>
+    <button id="btnImportSave" class="btn" style="width:48%;">📥 Import</button>
+  </div>
+</div>
+
+<div id="footer">🎲 Dice Idle Enhanced 🎲</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ==== BigNumber for large numbers ====
+  class BigNumber {
+    constructor(value) {
+      if (value instanceof BigNumber) {
+        this.value = value.value;
+      } else if (typeof value === 'string' || typeof value === 'number') {
+        this.value = Number(value);
+      } else {
+        this.value = 0;
+      }
+    }
+    add(x) { return new BigNumber(this.value + (x instanceof BigNumber ? x.value : x)); }
+    sub(x) { return new BigNumber(this.value - (x instanceof BigNumber ? x.value : x)); }
+    mul(x) { return new BigNumber(this.value * (x instanceof BigNumber ? x.value : x)); }
+    div(x) { return new BigNumber(this.value / (x instanceof BigNumber ? x.value : x)); }
+    lt(x) { return this.value < (x instanceof BigNumber ? x.value : x); }
+    gte(x) { return this.value >= (x instanceof BigNumber ? x.value : x); }
+    toString() {
+      if (this.value < 1000000) return Math.floor(this.value).toString();
+      if (this.value < 1e9) return (this.value/1e6).toFixed(2) + 'M';
+      if (this.value < 1e12) return (this.value/1e9).toFixed(2) + 'B';
+      if (this.value < 1e15) return (this.value/1e12).toFixed(2) + 'T';
+      if (this.value < 1e18) return (this.value/1e15).toFixed(2) + 'Q';
+      return this.value.toExponential(2);
+    }
+    valueOf() { return this.value; }
+  }
+
+  // ==== GLOBAL STATE ====
+  const state = {
+    coins: new BigNumber(0),
+    prestigePoints: new BigNumber(0),
+    totalCoinsEarned: new BigNumber(0),
+    prestigeThreshold: new BigNumber(1000),
+
+    dice: [
+      {count:1, sides:6, researched:true}
+    ],
+
+    upgrades: {
+      rollSpeed: 0,
+      bonusCoins: 0,
+      prestigeBonus: 0,
+      bought: new Set()
+    },
+
+    skillTree: {
+      pointsSpent: 0,
+      nodes: [
+  {id:'node1', name:'Faster Rolls', desc:'Reduce roll cooldown by 15%', cost:1, bought:false, apply(){
+    state.upgrades.rollSpeed += 0.15;
+  }},
+  {id:'node2', name:'Coin Boost', desc:'Increase coin gain by 25%', cost:1, bought:false, apply(){
+    state.upgrades.bonusCoins += 0.25;
+  }},
+  {id:'node3', name:'Prestige Master', desc:'Increase PP gain by 20%', cost:2, bought:false, apply(){
+    state.upgrades.prestigeBonus += 0.2;
+  }},
+  {id:'node4', name:'Combat Training', desc:'Unlock combat system', cost:1, bought:false, apply(){
+  // Show combat tab
+  document.getElementById('btnCombat').style.display = 'inline-block';
+  console.log('Combat system unlocked!');
+}},
+  {id:'node5', name:'Ore Finder', desc:'Increase ore drop rate by 50%', cost:2, bought:false, apply(){
+    // Increase ore drops
+  }},
+  {id:'node6', name:'Extra D6', desc:'Add another D6 to your collection', cost:3, bought:false, apply(){
+  // Find existing D6 and increase count, or add new one
+  const existingD6 = state.dice.find(d => d.sides === 6);
+  if (existingD6) {
+    existingD6.count++;
+  } else {
+    state.dice.push({count:1, sides:6, researched:true});
+  }
+  updateDiceDisplay();
+  console.log('Added extra D6, total D6s:', state.dice.find(d => d.sides === 6)?.count || 0);
+}},
+  {id:'node7', name:'Dice Research Lab', desc:'Unlock ability to research new dice types', cost:2, bought:false, apply(){
+    // Unlocks dice research
+  }}
+],
+    },
+
+    rollCooldown: 2000,
+    rollCooldownRemaining: 0,
+    lastRollTimestamp: 0,
+
+    // Player stats
+    player: {
+      maxHp: 100,
+      hp: 100,
+    },
+
+    // Monster system
+    monster: {
+      level: 1,
+      maxHp: 50,
+      hp: 50,
+      name: 'Goblin',
+      sprite: 'goblin'
+    },
+
+    ores: {
+      iron: 0,
+      silver: 0,
+      gold: 0,
+    },
+
+    weaponCrafted: false,
+    autoRollEnabled: false,
+  };
+
+  // === HELPERS ===
+  function formatNumber(x) {
+    if (x instanceof BigNumber) return x.toString();
+    if (typeof x === 'number') {
+      if (x < 1000000) return Math.floor(x).toString();
+      if (x < 1e9) return (x/1e6).toFixed(2) + 'M';
+      if (x < 1e12) return (x/1e9).toFixed(2) + 'B';
+      if (x < 1e15) return (x/1e12).toFixed(2) + 'T';
+      if (x < 1e18) return (x/1e15).toFixed(2) + 'Q';
+      return x.toExponential(2);
+    }
+    return String(x);
+  }
+
+  function randomInt(min,max) {
+    return Math.floor(Math.random()*(max-min+1))+min;
+  }
+
+  // ==== UI ELEMENTS ====
+  const moneyDisplay = document.getElementById('moneyDisplay');
+  const ppDisplay = document.getElementById('ppDisplay');
+  const diceDisplay = document.getElementById('diceDisplay');
+  const rollBtn = document.getElementById('rollBtn');
+  const rollCooldownBar = document.getElementById('rollCooldownFill');
+  const progressBar = document.getElementById('progressFill');
+  const progressText = document.getElementById('progressText');
+  const cooldownValueLabel = document.getElementById('cooldownValue');
+  const inputCooldownSpeed = document.getElementById('inputCooldownSpeed');
+  const inputAutoRoll = document.getElementById('inputAutoRoll');
+
+  const panelShop = document.getElementById('panelShop');
+  const panelSkillTree = document.getElementById('panelSkillTree');
+  const combatPanel = document.getElementById('combatPanel');
+  const settingsPanel = document.getElementById('settingsPanel');
+
+  const tabs = {
+    shop: document.getElementById('btnShop'),
+    skillTree: document.getElementById('btnSkillTree'),
+    combat: document.getElementById('btnCombat'),
+    settings: document.getElementById('btnSettings'),
+  };
+
+  // === Monster sprites ===
+  const monsterSprites = {
+    goblin: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMzQ3YTM0Ii8+CjxyZWN0IHg9IjIwIiB5PSIyMCIgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjNTJiNzUyIi8+CjxyZWN0IHg9IjI0IiB5PSIyOCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iI2ZmZiIvPgo8cmVjdCB4PSI0OCIgeT0iMjgiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiNmZmYiLz4KPHJlY3QgeD0iMjQiIHk9IjQ0IiB3aWR0aD0iMzIiIGhlaWdodD0iNCIgZmlsbD0iIzMzMyIvPgo8L3N2Zz4K',
+    orc: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjNGE0YTRhIi8+CjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjNmE2YTZhIi8+CjxyZWN0IHg9IjI0IiB5PSIzMiIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iI2ZmMDAyMCIvPgo8cmVjdCB4PSI0OCIgeT0iMzIiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiNmZjAwMjAiLz4KPHJlY3QgeD0iMjQiIHk9IjQ4IiB3aWR0aD0iMzIiIGhlaWdodD0iOCIgZmlsbD0iIzMzMyIvPgo8L3N2Zz4K',
+    dragon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCA4MCA4MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjOGI0NTEzIi8+CjxyZWN0IHg9IjEyIiB5PSIxMiIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiBmaWxsPSIjZmY2MzQ3Ii8+CjxyZWN0IHg9IjI0IiB5PSIzMiIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iI2ZmZjAwMCIvPgo8cmVjdCB4PSI0OCIgeT0iMzIiIHdpZHRoPSI4IiBoZWlnaHQ9IjgiIGZpbGw9IiNmZmYwMDAiLz4KPHJlY3QgeD0iMjAiIHk9IjUyIiB3aWR0aD0iNDAiIGhlaWdodD0iOCIgZmlsbD0iI2ZmMTEwMCIvPgo8L3N2Zz4K'
+  };
+
+  // === Ore sprites ===
+  const oreSprites = {
+    iron: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjN2Y4Yzg0Ii8+CjxyZWN0IHg9IjQiIHk9IjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0iI2EwYTBhMCIvPgo8L3N2Zz4K',
+    silver: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjOGM4Yzhj0Ii8+CjxyZWN0IHg9IjQiIHk9IjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0iI2UwZTBlMCIvPgo8L3N2Zz4K',
+    gold: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjYjg4NjBhIi8+CjxyZWN0IHg9IjQiIHk9IjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgZmlsbD0iI2ZmZGQyMiIvPgo8L3N2Zz4K'
+  };
+
+  // === Tabs control ===
+  function openTab(tabName) {
+    Object.values(tabs).forEach(btn => {
+      btn.classList.remove('active');
+      btn.setAttribute('aria-selected', 'false');
+    });
+    tabs[tabName].classList.add('active');
+    tabs[tabName].setAttribute('aria-selected', 'true');
+
+    // Hide all panels
+    document.querySelectorAll('.panel').forEach(panel => {
+      panel.classList.remove('open');
+      panel.style.display = 'none';
+      panel.setAttribute('aria-hidden', 'true');
+    });
+
+    let targetPanel;
+    switch(tabName) {
+      case 'shop': targetPanel = panelShop; break;
+      case 'skillTree': targetPanel = panelSkillTree; break;
+      case 'combat': targetPanel = combatPanel; break;
+      case 'settings': targetPanel = settingsPanel; break;
+    }
+
+    if (targetPanel) {
+      targetPanel.classList.add('open');
+      targetPanel.style.display = 'block';
+      targetPanel.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  // === DICE DISPLAY ===
+  function getDiceShape(sides) {
+    const shapes = {
+      4: 'pyramid',
+      6: 'cube', 
+      8: 'octahedron',
+      10: 'pentagonal-trapezohedron',
+      12: 'dodecahedron',
+      20: 'icosahedron'
+    };
+    return shapes[sides] || 'cube';
+  }
+
+  function updateDiceDisplay() {
+    diceDisplay.innerHTML = '';
+    for (const die of state.dice) {
+      for(let i = 0; i < die.count; i++) {
+        const dieDiv = document.createElement('div');
+        dieDiv.className = 'die';
+        dieDiv.title = `D${die.sides}`;
+        
+        const faceDiv = document.createElement('div');
+        faceDiv.className = `die-face d${die.sides}`;
+        
+        // Set different border radius based on die type
+        if (die.sides === 4) faceDiv.style.borderRadius = '30%';
+        else if (die.sides === 20) faceDiv.style.borderRadius = '50%';
+        else if (die.sides === 8) faceDiv.style.borderRadius = '20%';
+        
+        faceDiv.textContent = `D${die.sides}`;
+        dieDiv.appendChild(faceDiv);
+        diceDisplay.appendChild(dieDiv);
+      }
+    }
+  }
+
+  // === ROLL DICE ===
+  function rollAllDice() {
+  let totalCoins = 0;
+  const rolls = [];
+  let extraRolls = 0;
+  
+  // Add rolling animation
+  document.querySelectorAll('.die').forEach(die => {
+    die.classList.add('rolling');
+    setTimeout(() => die.classList.remove('rolling'), 600);
+  });
+
+  for (const die of state.dice) {
+    for(let i = 0; i < die.count; i++) {
+      const roll = randomInt(1, die.sides);
+      rolls.push({sides: die.sides, value: roll});
+      
+      // Apply special abilities
+      const ability = diceSpecialAbilities[die.sides];
+      if (ability) {
+        const result = ability.apply(roll);
+        if (typeof result === 'object' && result.extraRoll) {
+          extraRolls++;
+          totalCoins += result.value;
+        } else {
+          totalCoins += result;
+        }
+      } else {
+        totalCoins += roll;
+      }
+    }
+  }
+  
+  // Handle extra rolls from D12
+  for (let i = 0; i < extraRolls; i++) {
+    const extraRoll = randomInt(1, 6); // Extra rolls are D6
+    totalCoins += extraRoll;
+    rolls.push({sides: 6, value: extraRoll, isExtra: true});
+  }
+  
+  // Apply global bonuses
+  totalCoins *= (1 + state.upgrades.bonusCoins);
+  
+  // Update dice display with actual roll values
+  setTimeout(() => {
+    const diceElements = document.querySelectorAll('.die-face');
+    let rollIndex = 0;
+    for (const die of state.dice) {
+      for(let i = 0; i < die.count; i++) {
+        if (diceElements[rollIndex] && rolls[rollIndex]) {
+          diceElements[rollIndex].textContent = rolls[rollIndex].value;
+          if (rolls[rollIndex].isExtra) {
+            diceElements[rollIndex].style.border = '3px solid gold';
+          }
+        }
+        rollIndex++;
+      }
+    }
+  }, 300);
+  
+  return {total: Math.floor(totalCoins), rolls};
+}
+
+  // === COOLDOWN SYSTEM ===
+  let rollCooldownRemaining = 0;
+  let lastRollTimestamp = 0;
+
+  function startRollCooldown() {
+    const baseCooldown = state.rollCooldown;
+    const reducedCooldown = baseCooldown * (1 - state.upgrades.rollSpeed);
+    rollCooldownRemaining = Math.max(200, reducedCooldown);
+    lastRollTimestamp = performance.now();
+    rollBtn.classList.add('disabled');
+  }
+
+  function updateCooldown() {
+    if (rollCooldownRemaining > 0) {
+      const now = performance.now();
+      const dt = now - lastRollTimestamp;
+      rollCooldownRemaining -= dt;
+      lastRollTimestamp = now;
+      if (rollCooldownRemaining < 0) rollCooldownRemaining = 0;
+      rollBtn.classList.add('disabled');
+    } else {
+      rollBtn.classList.remove('disabled');
+      rollCooldownRemaining = 0;
+    }
+    
+    const baseCooldown = state.rollCooldown * (1 - state.upgrades.rollSpeed);
+    let pct = 1 - (rollCooldownRemaining / Math.max(200, baseCooldown));
+    if (pct < 0) pct = 0;
+    if (pct > 1) pct = 1;
+    rollCooldownBar.style.width = (pct * 100) + '%';
+
+    if (rollCooldownRemaining === 0 && state.autoRollEnabled) {
+      onRollButtonClicked();
+    }
+  }
+
+  // === RESOURCES DISPLAY ===
+  // === PRESTIGE SYSTEM ===
+    function canPrestige() {
+      return state.totalCoinsEarned.gte(state.prestigeThreshold);
+  }
+
+  // === PRESTIGE CALCULATION ===
+  function calculatePrestigeGain() {
+    const basePP = Math.floor(Math.sqrt(state.totalCoinsEarned.value / 1000));
+    const bonusPP = Math.floor(basePP * state.upgrades.prestigeBonus);
+    return basePP + bonusPP;
+  }
+  function updateResourcesDisplay() {
+  moneyDisplay.innerHTML = `💰 Coins: ${formatNumber(state.coins)}`;
+  ppDisplay.innerHTML = `⭐ Prestige Points: ${formatNumber(state.prestigePoints)}`;
+  
+  // Update progress bar inline
+  const progress = state.totalCoinsEarned.value / state.prestigeThreshold.value;
+  const progressPct = Math.min(100, progress * 100);
+  progressBar.style.width = progressPct + '%';
+  
+  if (progress >= 1) {
+    progressText.innerHTML = '';
+    const prestigeBtn = document.createElement('button');
+    prestigeBtn.textContent = '✨ PRESTIGE NOW! ✨';
+    prestigeBtn.style.cssText = 'background: linear-gradient(135deg, #9a5aa0, #ba7ac0); border: 2px solid #da9ae0; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: inherit;';
+    
+    prestigeBtn.addEventListener('click', function() {
+      if (!canPrestige()) {
+        alert('⭐ Not ready for prestige yet!');
+        return;
+      }
+      
+      const basePP = Math.floor(Math.sqrt(state.totalCoinsEarned.value / 1000));
+      const bonusPP = Math.floor(basePP * state.upgrades.prestigeBonus);
+      const totalPP = basePP + bonusPP;
+      
+      if (confirm(`🌟 PRESTIGE 🌟\n\nYou will gain ${totalPP} Prestige Points!\n\nYou will keep:\n- Prestige Points\n- Skill Tree Progress\n- Unlocked Dice Types\n\nYou will lose:\n- All Coins\n- Shop Upgrades\n- Ores\n- Combat Progress\n- Auto-roll setting\n\nContinue?`)) {
+        
+        // What we keep
+        const keepDice = [...state.dice];
+        const keepSkillTree = JSON.parse(JSON.stringify(state.skillTree));
+        const keepPP = state.prestigePoints.add(totalPP);
+        
+        // Reset everything else
+        state.coins = new BigNumber(0);
+        state.totalCoinsEarned = new BigNumber(0);
+        state.prestigeThreshold = state.prestigeThreshold.mul(10);
+        state.dice = keepDice;
+        state.skillTree = keepSkillTree;
+        state.prestigePoints = keepPP;
+        
+        // Reset upgrades but keep prestige bonus
+        const oldPrestigeBonus = state.upgrades.prestigeBonus;
+        state.upgrades = {
+          rollSpeed: 0,
+          bonusCoins: 0,
+          prestigeBonus: oldPrestigeBonus,
+          bought: new Set()
+        };
+        
+        state.rollCooldown = 2000;
+        state.player.hp = state.player.maxHp;
+        state.monster.level = 1;
+        state.ores = { iron: 0, silver: 0, gold: 0 };
+        state.weaponCrafted = false;
+        state.autoRollEnabled = false;
+        
+        // Update UI
+        inputAutoRoll.checked = false;
+        
+        // Re-apply skill tree bonuses
+        for (const node of state.skillTree.nodes) {
+          if (node.bought) {
+            node.apply();
+          }
+        }
+        
+        // Refresh UI
+        updateResourcesDisplay();
+        updateDiceDisplay();
+        setupShopUI();
+        setupSkillTreeUI();
+        setupDiceResearchUI();
+        updateOresDisplay();
+        resetMonster();
+        updatePlayerHpBar();
+        updateTabVisibility();
+
+        
+        if (document.getElementById('combatLog')) {
+          addCombatLog(`🌟 PRESTIGE COMPLETE! Gained ${totalPP} PP!`);
+        }
+        alert(`🌟 Prestige completed! You gained ${totalPP} Prestige Points!`);
+      }
+    });
+    
+    progressText.appendChild(prestigeBtn);
+    progressText.style.animation = 'glow 1s ease-in-out infinite alternate';
+  } else {
+    progressText.textContent = `Progress to Prestige: ${progressPct.toFixed(1)}%`;
+    progressText.style.animation = 'none';
+  }
+}
+
+	// === DICE SPECIAL ABILITIES ===
+const diceSpecialAbilities = {
+  4: {
+    name: 'Binary Fortune',
+    desc: 'Each roll has 30% chance to double coin gain',
+    apply: (rollValue) => {
+      if (Math.random() < 0.3) {
+        return rollValue * 2;
+      }
+      return rollValue;
+    }
+  },
+  6: {
+    name: 'Balanced',
+    desc: 'Standard die with no special ability',
+    apply: (rollValue) => rollValue
+  },
+  8: {
+    name: 'Stabilizer',
+    desc: '25% chance to add +2 to roll result',
+    apply: (rollValue) => {
+      if (Math.random() < 0.25) {
+        return rollValue + 2;
+      }
+      return rollValue;
+    }
+  },
+  10: {
+    name: 'Percentile Power',
+    desc: '20% chance to multiply roll by 1.5x',
+    apply: (rollValue) => {
+      if (Math.random() < 0.2) {
+        return Math.floor(rollValue * 1.5);
+      }
+      return rollValue;
+    }
+  },
+  12: {
+    name: 'Mystic Twelve',
+    desc: '15% chance to gain extra roll this turn',
+    apply: (rollValue) => {
+      if (Math.random() < 0.15) {
+        return { value: rollValue, extraRoll: true };
+      }
+      return rollValue;
+    }
+  },
+  20: {
+    name: 'Legendary Surge',
+    desc: '10% chance for massive 3x multiplier',
+    apply: (rollValue) => {
+      if (Math.random() < 0.1) {
+        return rollValue * 3;
+      }
+      return rollValue;
+    }
+  }
+};
+  
+
+  // === SHOP & UPGRADES ===
+  const shopUpgradesData = [
+  {id:'upgrade1', name:'Swift Hands', desc:'Reduce roll cooldown by 300ms', baseCost:50, growth:1.5, maxLevel: 10, effect: 'cooldown'},
+  {id:'upgrade2', name:'Lucky Coin', desc:'Increase coin gain by 25%', baseCost:100, growth:1.8, maxLevel: 15, effect: 'coins'},
+  {id:'upgrade3', name:'Coin Magnet', desc:'Increase coin gain by 50%', baseCost:1000, growth:2.0, maxLevel: 10, effect: 'coins_big'},
+  {id:'upgrade4', name:'Speed Demon', desc:'Reduce roll cooldown by 500ms', baseCost:2000, growth:2.2, maxLevel: 8, effect: 'cooldown_big'},
+  {id:'upgrade5', name:'Fortune Teller', desc:'Increase coin gain by 100%', baseCost:5000, growth:2.8, maxLevel: 5, effect: 'coins_huge'},
+  {id:'upgrade6', name:'Auto Roller', desc:'Automatically roll dice', baseCost:10000, growth:1.0, maxLevel: 1, effect: 'auto'},
+  {id:'upgrade7', name:'Master Roller', desc:'Reduce all cooldowns by 75%', baseCost:25000, growth:1.0, maxLevel: 1, effect: 'master_speed'},
+  // Moved dice upgrade to prestige system - removed from shop
+];
+
+  function getUpgradeLevel(upgradeId) {
+  return Array.from(state.upgrades.bought).filter(id => id.startsWith(upgradeId + '_')).length;
+}
+
+  function setupShopUI() {
+    const shopList = document.getElementById('shopUpgradesList');
+    shopList.innerHTML = '';
+    
+    for (const upg of shopUpgradesData) {
+      const currentLevel = getUpgradeLevel(upg.id);
+      if (currentLevel >= upg.maxLevel) continue; // Skip maxed upgrades
+      
+      const cost = Math.floor(upg.baseCost * Math.pow(upg.growth, currentLevel));
+      const levelText = upg.maxLevel > 1 ? ` (${currentLevel}/${upg.maxLevel})` : '';
+      
+      const div = document.createElement('div');
+      div.className = 'upgrade';
+      if (currentLevel > 0) div.classList.add('bought');
+      div.tabIndex = 0;
+      div.innerHTML = `
+        <div class="upgrade-title">${upg.name}${levelText}</div>
+        <div class="upgrade-desc">${upg.desc}</div>
+        <div class="cost">💰 Cost: ${formatNumber(cost)} coins</div>
+      `;
+      
+      div.onclick = () => {
+        if (state.coins.gte(cost)) {
+          state.coins = state.coins.sub(cost);
+          const upgradeKey = `${upg.id}_${currentLevel}`;
+          state.upgrades.bought.add(upgradeKey);
+          applyUpgrade(upg.effect, currentLevel + 1);
+          updateResourcesDisplay();
+          setupShopUI();
+        } else {
+          alert('💸 Not enough coins!');
+        }
+      };
+      
+      if (state.coins.lt(cost)) {
+        div.classList.add('disabled');
+      }
+      
+      shopList.appendChild(div);
+    }
+  }
+
+  function applyUpgrade(effect, level) {
+    switch(effect) {
+      case 'cooldown':
+        state.rollCooldown = Math.max(200, state.rollCooldown - 300);
+        break;
+      case 'cooldown_big':
+        state.rollCooldown = Math.max(200, state.rollCooldown - 500);
+        break;
+      case 'coins':
+        state.upgrades.bonusCoins += 0.25;
+        break;
+      case 'coins_big':
+        state.upgrades.bonusCoins += 0.5;
+        break;
+      case 'coins_huge':
+        state.upgrades.bonusCoins += 1.0;
+        break;
+      case 'dice':
+        state.dice.push({count:1, sides:6, researched:true});
+        updateDiceDisplay();
+        break;
+      case 'auto':
+        state.autoRollEnabled = true;
+        inputAutoRoll.checked = true;
+        break;
+      case 'master_speed':
+        state.upgrades.rollSpeed += 0.75;
+        break;
+    }
+  }
+
+  // === SKILL TREE ===
+  function setupSkillTreeUI() {
+  const container = document.getElementById('skillTreeNodes');
+  container.innerHTML = '';
+  
+  for (const node of state.skillTree.nodes) {
+    const div = document.createElement('div');
+    div.className = 'skillNode';
+    if (node.bought) div.classList.add('bought');
+    div.tabIndex = 0;
+    div.innerHTML = `
+      <div class="skillNode-title">${node.name} ${node.bought ? '✅' : ''}</div>
+      <div class="skillNode-desc">${node.desc}</div>
+      <div class="cost">⭐ Cost: ${node.cost} PP</div>
+    `;
+    
+    div.onclick = () => {
+      console.log(`Clicked node: ${node.name}, PP: ${state.prestigePoints.value}, Cost: ${node.cost}, Bought: ${node.bought}`);
+      
+      if (node.bought) {
+        alert('✅ Already purchased!');
+        return;
+      }
+      
+      if (state.prestigePoints.lt(node.cost)) {
+        alert(`⭐ Not enough Prestige Points! You have ${formatNumber(state.prestigePoints)}, need ${node.cost}`);
+        return;
+      }
+      
+      // Purchase the node
+      state.prestigePoints = state.prestigePoints.sub(node.cost);
+      node.bought = true;
+      
+      // Apply the effect
+      try {
+        node.apply();
+        console.log(`Applied effect for ${node.name}`);
+      } catch (e) {
+        console.error(`Error applying effect for ${node.name}:`, e);
+      }
+      
+      // Update displays
+      updateResourcesDisplay();
+      setupSkillTreeUI();
+      setupDiceResearchUI(); // Refresh dice research in case research lab was unlocked
+      
+      alert(`🌟 ${node.name} purchased successfully!`);
+    };
+    
+    // Set visual state
+    if (node.bought) {
+      div.classList.add('disabled');
+      div.style.cursor = 'default';
+    } else if (state.prestigePoints.lt(node.cost)) {
+      div.classList.add('disabled');
+    }
+    
+    container.appendChild(div);
+  }
+}
+  // === DICE RESEARCH SYSTEM ===
+let currentDiceResearchOffers = [];
+
+function generateDiceResearchOffers() {
+  const availableDice = diceResearchOptions.filter(option => 
+    !state.dice.some(d => d.sides === option.sides)
+  );
+  
+  currentDiceResearchOffers = [];
+  const numOffers = Math.min(3, availableDice.length);
+  
+  for (let i = 0; i < numOffers; i++) {
+    const randomIndex = Math.floor(Math.random() * availableDice.length);
+    const selectedDie = availableDice.splice(randomIndex, 1)[0];
+    currentDiceResearchOffers.push(selectedDie);
+  }
+}
+  // === DICE RESEARCH ===
+  const diceResearchOptions = [
+    {id:'d4', sides:4, cost:2, name: 'Pyramid Die'},
+    {id:'d8', sides:8, cost:3, name: 'Octahedron Die'},
+    {id:'d10', sides:10, cost:4, name: 'Percentile Die'},
+    {id:'d12', sides:12, cost:5, name: 'Dodecahedron Die'},
+    {id:'d20', sides:20, cost:7, name: 'Icosahedron Die'},
+  ];
+
+  function setupDiceResearchUI() {
+  const container = document.getElementById('diceResearchOptions');
+  
+  // Check if research lab is unlocked
+  const researchUnlocked = state.skillTree.nodes.find(n => n.id === 'node7')?.bought;
+  if (!researchUnlocked) {
+    container.innerHTML = '<p style="color: #666;">Unlock Dice Research Lab in skill tree first!</p>';
+    return;
+  }
+  
+  // Generate new offers if none exist
+  if (currentDiceResearchOffers.length === 0) {
+    generateDiceResearchOffers();
+  }
+  
+  container.innerHTML = '';
+  
+  if (currentDiceResearchOffers.length === 0) {
+    container.innerHTML = '<p style="color: #ffa500;">All dice types discovered!</p>';
+    return;
+  }
+  
+  for (const option of currentDiceResearchOffers) {
+    const ability = diceSpecialAbilities[option.sides];
+    const div = document.createElement('div');
+    div.className = 'diceOption';
+    div.innerHTML = `
+      <div class="diceOption-title">🎲 ${option.name}</div>
+      <div class="diceOption-desc">D${option.sides} - Cost: ${option.cost} PP</div>
+      <div style="font-size: 12px; color: #a5b5e0; margin-top: 5px;">
+        Special: ${ability ? ability.name : 'Unknown'}<br>
+        ${ability ? ability.desc : 'Hidden ability'}
+      </div>
+    `;
+    
+    div.onclick = () => {
+      if (state.prestigePoints.gte(option.cost)) {
+        state.prestigePoints = state.prestigePoints.sub(option.cost);
+        state.dice.push({count:1, sides: option.sides, researched:true});
+        
+        // Remove from offers
+        currentDiceResearchOffers = currentDiceResearchOffers.filter(o => o.id !== option.id);
+        
+        updateResourcesDisplay();
+        updateDiceDisplay();
+        setupDiceResearchUI();
+        
+        alert(`🎲 ${option.name} acquired!\nSpecial Ability: ${ability.name}\n${ability.desc}`);
+      } else {
+        alert('⭐ Not enough Prestige Points!');
+      }
+    };
+    
+    if (state.prestigePoints.lt(option.cost)) {
+      div.classList.add('disabled');
+    }
+    
+    container.appendChild(div);
+  }
+}
+
+  // === MONSTER SYSTEM ===
+  const monsterTypes = [
+    {name: 'Goblin', sprite: 'goblin', baseHp: 30, level: 1},
+    {name: 'Orc Warrior', sprite: 'orc', baseHp: 60, level: 2},
+    {name: 'Ancient Dragon', sprite: 'dragon', baseHp: 120, level: 3}
+  ];
+
+  function getMonsterForLevel(level) {
+    const baseType = monsterTypes[Math.min(level - 1, monsterTypes.length - 1)];
+    return {
+      ...baseType,
+      level: level,
+      maxHp: Math.floor(baseType.baseHp * Math.pow(1.3, level - baseType.level)),
+      hp: Math.floor(baseType.baseHp * Math.pow(1.3, level - baseType.level))
+    };
+  }
+
+  function resetMonster() {
+    const monsterData = getMonsterForLevel(state.monster.level);
+    state.monster = { ...monsterData };
+    updateMonsterDisplay();
+    updateMonsterHpBar();
+    addCombatLog(`🐲 A Level ${state.monster.level} ${state.monster.name} appears! (${state.monster.hp} HP)`);
+  }
+
+  function updateMonsterDisplay() {
+    const monsterSprite = document.getElementById('monsterSprite');
+    const monsterName = document.getElementById('monsterName');
+    const monsterLevel = document.getElementById('monsterLevel');
+    
+    monsterSprite.style.backgroundImage = `url(${monsterSprites[state.monster.sprite]})`;
+    monsterName.textContent = state.monster.name;
+    monsterLevel.textContent = `Level ${state.monster.level}`;
+  }
+
+  function updateMonsterHpBar() {
+    const pct = Math.max(0, Math.min(1, state.monster.hp / state.monster.maxHp));
+    document.getElementById('monsterHpFill').style.width = (pct*100) + '%';
+  }
+
+  function updatePlayerHpBar() {
+    const pct = Math.max(0, Math.min(1, state.player.hp / state.player.maxHp));
+    document.getElementById('playerHpFill').style.width = (pct*100) + '%';
+  }
+
+  // === COMBAT LOG ===
+  const combatLog = document.getElementById('combatLog');
+  
+  function addCombatLog(text) {
+    combatLog.textContent += text + '\n';
+    combatLog.scrollTop = combatLog.scrollHeight;
+  }
+
+  // === COMBAT SYSTEM ===
+  document.getElementById('btnFightRoll').onclick = () => {
+    if (rollCooldownRemaining > 0) {
+      addCombatLog("⏳ Roll on cooldown...");
+      return;
+    }
+    
+    const rollResult = rollAllDice();
+    const attackPower = rollResult.total + (state.weaponCrafted ? 10 : 0);
+    const hitChance = Math.min(90, 50 + (attackPower * 2));
+    
+    addCombatLog(`⚔️ You attack with power ${attackPower}!`);
+    
+    if (Math.random() * 100 < hitChance) {
+      const damage = Math.floor(attackPower * (0.8 + Math.random() * 0.4));
+      state.monster.hp -= damage;
+      if (state.monster.hp < 0) state.monster.hp = 0;
+      
+      addCombatLog(`💥 Hit! You deal ${damage} damage.`);
+      updateMonsterHpBar();
+      
+      if (state.monster.hp <= 0) {
+        const coins = state.monster.level * 20;
+        const oreReward = Math.floor(Math.random() * 3) + 1;
+        
+        addCombatLog(`🎉 ${state.monster.name} defeated!`);
+        addCombatLog(`💰 +${coins} coins`);
+        
+        // Ore rewards
+        if (Math.random() < 0.7) {
+          state.ores.iron += oreReward;
+          addCombatLog(`⛏️ +${oreReward} Iron ore`);
+        }
+        if (Math.random() < 0.4) {
+          state.ores.silver += Math.max(1, Math.floor(oreReward/2));
+          addCombatLog(`⛏️ +${Math.max(1, Math.floor(oreReward/2))} Silver ore`);
+        }
+        if (Math.random() < 0.2) {
+          state.ores.gold += 1;
+          addCombatLog(`⛏️ +1 Gold ore`);
+        }
+        
+        state.coins = state.coins.add(coins);
+        state.monster.level++;
+        updateResourcesDisplay();
+        updateOresDisplay();
+        resetMonster();
+      }
+    } else {
+      addCombatLog(`❌ Your attack missed!`);
+    }
+    
+    // Monster counter-attack
+    if (state.monster.hp > 0) {
+      const monsterAttack = randomInt(5, 15) + state.monster.level * 3;
+      const defense = state.weaponCrafted ? 5 : 0;
+      const damage = Math.max(1, monsterAttack - defense);
+      
+      state.player.hp -= damage;
+      addCombatLog(`👹 ${state.monster.name} attacks for ${damage} damage!`);
+      
+      if (state.player.hp <= 0) {
+        state.player.hp = 0;
+        const oreLoss = Math.floor(state.ores.iron * 0.1) + Math.floor(state.ores.silver * 0.1) + Math.floor(state.ores.gold * 0.1);
+        state.ores.iron = Math.floor(state.ores.iron * 0.9);
+        state.ores.silver = Math.floor(state.ores.silver * 0.9);
+        state.ores.gold = Math.floor(state.ores.gold * 0.9);
+        
+        addCombatLog(`💀 You have been defeated!`);
+        addCombatLog(`📦 Lost 10% of your ores...`);
+        
+        // Respawn with full HP
+        setTimeout(() => {
+          state.player.hp = state.player.maxHp;
+          updatePlayerHpBar();
+          updateOresDisplay();
+          addCombatLog(`🔄 You respawn with full health!`);
+        }, 2000);
+      }
+      
+      updatePlayerHpBar();
+    }
+    
+    startRollCooldown();
+  };
+
+  // === ORES & CRAFTING ===
+  function updateOresDisplay() {
+    const oresDisplay = document.getElementById('oresDisplay');
+    oresDisplay.innerHTML = '';
+    
+    for (const oreName in state.ores) {
+      const oreDiv = document.createElement('div');
+      oreDiv.style.display = 'inline-block';
+      oreDiv.style.margin = '5px 10px 5px 0';
+      
+      const oreImg = document.createElement('img');
+      oreImg.src = oreSprites[oreName];
+      oreImg.className = 'ore';
+      oreImg.alt = `${oreName} ore`;
+      
+      const countSpan = document.createElement('span');
+      countSpan.className = 'ore-count';
+      countSpan.textContent = ` x${state.ores[oreName]}`;
+      
+      oreDiv.appendChild(oreImg);
+      oreDiv.appendChild(countSpan);
+      oresDisplay.appendChild(oreDiv);
+    }
+  }
+
+  document.getElementById('btnCraftWeapon').onclick = () => {
+    if (state.ores.iron >= 5 && state.ores.silver >= 3 && state.ores.gold >= 1) {
+      if (state.weaponCrafted) {
+        alert('🔨 You already have a weapon crafted!');
+        return;
+      }
+      
+      state.ores.iron -= 5;
+      state.ores.silver -= 3;
+      state.ores.gold -= 1;
+      state.weaponCrafted = true;
+      
+      addCombatLog('🔨 Weapon crafted! +10 attack power and +5 defense!');
+      updateOresDisplay();
+      
+      // Update button text
+      document.getElementById('btnCraftWeapon').textContent = '✅ Weapon Crafted!';
+      document.getElementById('btnCraftWeapon').classList.add('disabled');
+    } else {
+      alert('🔨 Need: 5 Iron, 3 Silver, 1 Gold ore!');
+    }
+  };
+
+
+  // === ROLL BUTTON ===
+  function onRollButtonClicked() {
+    if (rollCooldownRemaining > 0) return;
+    
+    const rollResult = rollAllDice();
+    const coinsGained = rollResult.total;
+    
+    state.coins = state.coins.add(coinsGained);
+    state.totalCoinsEarned = state.totalCoinsEarned.add(coinsGained);
+    
+    updateResourcesDisplay();
+    startRollCooldown();
+    
+    // Random ore drops on good rolls
+    if (rollResult.total > 15 && Math.random() < 0.3) {
+      if (Math.random() < 0.6) state.ores.iron++;
+      if (Math.random() < 0.3) state.ores.silver++;
+      if (Math.random() < 0.1) state.ores.gold++;
+      updateOresDisplay();
+    }
+  }
+
+  rollBtn.onclick = onRollButtonClicked;
+
+  // === SETTINGS ===
+  inputCooldownSpeed.oninput = () => {
+    const val = parseFloat(inputCooldownSpeed.value);
+    cooldownValueLabel.textContent = val.toFixed(2);
+    state.rollCooldown = val * 1000;
+  };
+
+  inputAutoRoll.onchange = () => {
+    state.autoRollEnabled = inputAutoRoll.checked;
+  };
+
+  // === DEV MODE CONTROLS ===
+const inputDevMode = document.getElementById('inputDevMode');
+const devModeButtons = document.getElementById('devModeButtons');
+const btnAddMoney = document.getElementById('btnAddMoney');
+const btnAddPP = document.getElementById('btnAddPP');
+const btnUnlockAllDice = document.getElementById('btnUnlockAllDice');
+const btnMaxUpgrades = document.getElementById('btnMaxUpgrades');
+const btnResetProgress = document.getElementById('btnResetProgress');
+
+inputDevMode.onchange = () => {
+  if (inputDevMode.checked) {
+    devModeButtons.style.display = 'block';
+    alert('🔧 Developer Mode ENABLED!\n\nUse these tools responsibly. They can break game progression!');
+  } else {
+    devModeButtons.style.display = 'none';
+  }
+};
+
+btnAddMoney.onclick = () => {
+  state.coins = state.coins.add(1000000);
+  state.totalCoinsEarned = state.totalCoinsEarned.add(1000000);
+  updateResourcesDisplay();
+  alert('💰 Added 1,000,000 coins!');
+};
+
+btnAddPP.onclick = () => {
+  state.prestigePoints = state.prestigePoints.add(100);
+  updateResourcesDisplay();
+  alert('⭐ Added 100 Prestige Points!');
+};
+
+btnUnlockAllDice.onclick = () => {
+  const allDiceTypes = [4, 6, 8, 10, 12, 20];
+  for (const sides of allDiceTypes) {
+    if (!state.dice.some(d => d.sides === sides)) {
+      state.dice.push({count: 1, sides: sides, researched: true});
+    }
+  }
+  updateDiceDisplay();
+  alert('🎲 All dice types unlocked!');
+};
+
+btnMaxUpgrades.onclick = () => {
+  if (confirm('⚠️ This will max out all shop upgrades!\n\nThis might make the game too easy. Continue?')) {
+    // Add all shop upgrades at max level
+    for (const upg of shopUpgradesData) {
+      for (let level = 0; level < upg.maxLevel; level++) {
+        const upgradeKey = `${upg.id}_${level}`;
+        state.upgrades.bought.add(upgradeKey);
+        applyUpgrade(upg.effect, level + 1);
+      }
+    }
+    
+    // Unlock all skill tree nodes
+    for (const node of state.skillTree.nodes) {
+      if (!node.bought) {
+        node.bought = true;
+        node.apply();
+      }
+    }
+    
+    updateResourcesDisplay();
+    setupShopUI();
+    setupSkillTreeUI();
+    alert('⬆️ All upgrades maxed out!');
+  }
+};
+
+btnResetProgress.onclick = () => {
+  if (confirm('🔄 RESET ALL PROGRESS\n\nThis will delete EVERYTHING and start fresh!\n\nAre you absolutely sure?')) {
+    if (confirm('⚠️ FINAL WARNING!\n\nThis cannot be undone!\n\nContinue with reset?')) {
+      // Reset to initial state
+      state.coins = new BigNumber(0);
+      state.prestigePoints = new BigNumber(0);
+      state.totalCoinsEarned = new BigNumber(0);
+      state.prestigeThreshold = new BigNumber(1000);
+      state.dice = [{count:1, sides:6, researched:true}];
+      state.upgrades = {
+        rollSpeed: 0,
+        bonusCoins: 0,
+        prestigeBonus: 0,
+        bought: new Set()
+      };
+      state.skillTree.nodes.forEach(node => node.bought = false);
+      state.rollCooldown = 2000;
+      state.player.hp = state.player.maxHp;
+      state.monster.level = 1;
+      state.ores = { iron: 0, silver: 0, gold: 0 };
+      state.weaponCrafted = false;
+      state.autoRollEnabled = false;
+      
+      // Reset UI
+      inputAutoRoll.checked = false;
+      inputDevMode.checked = false;
+      devModeButtons.style.display = 'none';
+      
+      // Refresh everything
+      updateResourcesDisplay();
+      updateDiceDisplay();
+      setupShopUI();
+      setupSkillTreeUI();
+      setupDiceResearchUI();
+      updateOresDisplay();
+      resetMonster();
+      updatePlayerHpBar();
+      updateTabVisibility();
+
+      
+      alert('🔄 Complete reset performed! Game is back to start.');
+    }
+  }
+};
+  
+  // === TAB VISIBILITY ===
+  function updateTabVisibility() {
+    // Show combat tab if combat training is unlocked
+    const combatUnlocked = state.skillTree.nodes.find(n => n.id === 'node4')?.bought;
+    if (combatUnlocked) {
+      document.getElementById('btnCombat').style.display = 'inline-block';
+    } else {
+      document.getElementById('btnCombat').style.display = 'none';
+      // If combat tab is currently open, switch to shop
+      if (currentOpenTab === 'combat') {
+        openTab('shop');
+      }
+    }
+  }
+  // === SAVE & LOAD ===
+  const btnSaveGame = document.getElementById('btnSaveGame');
+  const btnLoadGame = document.getElementById('btnLoadGame');
+  const btnExportSave = document.getElementById('btnExportSave');
+  const btnImportSave = document.getElementById('btnImportSave');
+  const importExportArea = document.getElementById('importExportArea');
+
+  function saveGame() {
+    const saveObj = {
+      coins: state.coins.value,
+      prestigePoints: state.prestigePoints.value,
+      totalCoinsEarned: state.totalCoinsEarned.value,
+      prestigeThreshold: state.prestigeThreshold.value,
+      dice: state.dice,
+      upgrades: {
+        ...state.upgrades,
+        bought: Array.from(state.upgrades.bought)
+      },
+      skillTree: state.skillTree,
+      rollCooldown: state.rollCooldown,
+      player: state.player,
+      monster: state.monster,
+      ores: state.ores,
+      weaponCrafted: state.weaponCrafted,
+      autoRollEnabled: state.autoRollEnabled,
+      version: '2.0'
+    };
+    localStorage.setItem('diceIdleEnhanced', JSON.stringify(saveObj));
+    alert('💾 Game saved successfully!');
+  }
+
+  function loadGame() {
+    const dataStr = localStorage.getItem('diceIdleEnhanced');
+    if (!dataStr) {
+      alert('📁 No save found.');
+      return;
+    }
+    
+    try {
+      const data = JSON.parse(dataStr);
+      
+      state.coins = new BigNumber(data.coins || 0);
+      state.prestigePoints = new BigNumber(data.prestigePoints || 0);
+      state.totalCoinsEarned = new BigNumber(data.totalCoinsEarned || 0);
+      state.prestigeThreshold = new BigNumber(data.prestigeThreshold || 1000);
+      state.dice = data.dice || [{count:1, sides:6, researched:true}];
+      
+      if (data.upgrades) {
+        state.upgrades = {
+          ...data.upgrades,
+          bought: new Set(data.upgrades.bought || [])
+        };
+      }
+      
+      state.skillTree = data.skillTree || state.skillTree;
+      state.rollCooldown = data.rollCooldown || 2000;
+      state.player = data.player || {maxHp: 100, hp: 100};
+      state.monster = data.monster || {level: 1, maxHp: 50, hp: 50, name: 'Goblin', sprite: 'goblin'};
+      state.ores = data.ores || {iron: 0, silver: 0, gold: 0};
+      state.weaponCrafted = data.weaponCrafted || false;
+      state.autoRollEnabled = data.autoRollEnabled || false;
+      
+      // Update UI elements
+      inputAutoRoll.checked = state.autoRollEnabled;
+      inputCooldownSpeed.value = state.rollCooldown / 1000;
+      cooldownValueLabel.textContent = (state.rollCooldown / 1000).toFixed(2);
+      
+      // Refresh all displays
+      updateResourcesDisplay();
+      updateDiceDisplay();
+      setupShopUI();
+      setupSkillTreeUI();
+      setupDiceResearchUI();
+      updateOresDisplay();
+      updateMonsterDisplay();
+      updateMonsterHpBar();
+      updatePlayerHpBar();
+      updateTabVisibility();
+      
+      if (state.weaponCrafted) {
+        document.getElementById('btnCraftWeapon').textContent = '✅ Weapon Crafted!';
+        document.getElementById('btnCraftWeapon').classList.add('disabled');
+      }
+      
+      alert('📁 Game loaded successfully!');
+    } catch(e) {
+      alert('❌ Failed to load save: ' + e.message);
+    }
+  }
+
+  btnSaveGame.onclick = saveGame;
+  btnLoadGame.onclick = loadGame;
+
+  btnExportSave.onclick = () => {
+    const saveObj = {
+      coins: state.coins.value,
+      prestigePoints: state.prestigePoints.value,
+      totalCoinsEarned: state.totalCoinsEarned.value,
+      prestigeThreshold: state.prestigeThreshold.value,
+      dice: state.dice,
+      upgrades: {
+        ...state.upgrades,
+        bought: Array.from(state.upgrades.bought)
+      },
+      skillTree: state.skillTree,
+      rollCooldown: state.rollCooldown,
+      player: state.player,
+      monster: state.monster,
+      ores: state.ores,
+      weaponCrafted: state.weaponCrafted,
+      autoRollEnabled: state.autoRollEnabled,
+      version: '2.0'
+    };
+    importExportArea.value = btoa(JSON.stringify(saveObj));
+    alert('📤 Save exported to text area!');
+  };
+
+  btnImportSave.onclick = () => {
+    try {
+      const data = JSON.parse(atob(importExportArea.value.trim()));
+      
+      // Same loading logic as loadGame
+      state.coins = new BigNumber(data.coins || 0);
+      state.prestigePoints = new BigNumber(data.prestigePoints || 0);
+      state.totalCoinsEarned = new BigNumber(data.totalCoinsEarned || 0);
+      state.prestigeThreshold = new BigNumber(data.prestigeThreshold || 1000);
+      state.dice = data.dice || [{count:1, sides:6, researched:true}];
+      
+      if (data.upgrades) {
+        state.upgrades = {
+          ...data.upgrades,
+          bought: new Set(data.upgrades.bought || [])
+        };
+      }
+      
+      state.skillTree = data.skillTree || state.skillTree;
+      state.rollCooldown = data.rollCooldown || 2000;
+      state.player = data.player || {maxHp: 100, hp: 100};
+      state.monster = data.monster || {level: 1, maxHp: 50, hp: 50, name: 'Goblin', sprite: 'goblin'};
+      state.ores = data.ores || {iron: 0, silver: 0, gold: 0};
+      state.weaponCrafted = data.weaponCrafted || false;
+      state.autoRollEnabled = data.autoRollEnabled || false;
+      
+      // Update UI
+      inputAutoRoll.checked = state.autoRollEnabled;
+      inputCooldownSpeed.value = state.rollCooldown / 1000;
+      cooldownValueLabel.textContent = (state.rollCooldown / 1000).toFixed(2);
+      
+      updateResourcesDisplay();
+      updateDiceDisplay();
+      setupShopUI();
+      setupSkillTreeUI();
+      setupDiceResearchUI();
+      updateOresDisplay();
+      updateMonsterDisplay();
+      updateMonsterHpBar();
+      updatePlayerHpBar();
+      updateTabVisibility();
+
+      
+      if (state.weaponCrafted) {
+        document.getElementById('btnCraftWeapon').textContent = '✅ Weapon Crafted!';
+        document.getElementById('btnCraftWeapon').classList.add('disabled');
+      }
+      
+      alert('📥 Save imported successfully!');
+    } catch (e) {
+      alert('❌ Invalid save data: ' + e.message);
+    }
+  };
+
+  // === MAIN GAME LOOP ===
+  function mainLoop() {
+    updateCooldown();
+    requestAnimationFrame(mainLoop);
+  }
+
+  // === INITIALIZATION ===
+  function init() {
+  updateResourcesDisplay();
+  updateDiceDisplay();
+  setupShopUI();
+  setupSkillTreeUI();
+  setupDiceResearchUI();
+  updateOresDisplay();
+  resetMonster();
+  updatePlayerHpBar();
+  updateTabVisibility();
+  
+  // Start with all panels closed
+  closeAllTabs();
+  
+  lastRollTimestamp = performance.now();
+  mainLoop();
+  
+  // Auto-save every 120 seconds
+  setInterval(saveGame, 120000);
+}
+  // === CORRECTED TAB MANAGEMENT ===
+let currentOpenTab = 'shop'; // Track current tab
+
+function openTab(tabName) {
+  // If clicking the same tab that's already open, close it
+  if (currentOpenTab === tabName) {
+    closeAllTabs();
+    return;
+  }
+  
+  // Remove active state from all tabs
+  Object.values(tabs).forEach(btn => {
+    btn.classList.remove('active');
+    btn.setAttribute('aria-selected', 'false');
+  });
+  
+  // Hide all panels
+  document.querySelectorAll('.panel, #combatPanel, #settingsPanel').forEach(panel => {
+    panel.classList.remove('open');
+    panel.style.display = 'none';
+    panel.setAttribute('aria-hidden', 'true');
+  });
+  
+  // Set new active tab
+  tabs[tabName].classList.add('active');
+  tabs[tabName].setAttribute('aria-selected', 'true');
+  currentOpenTab = tabName;
+  
+  // Show target panel
+  let targetPanel;
+  switch(tabName) {
+    case 'shop': targetPanel = panelShop; break;
+    case 'skillTree': targetPanel = panelSkillTree; break;
+    case 'combat': targetPanel = combatPanel; break;
+    case 'settings': targetPanel = settingsPanel; break;
+  }
+  
+  if (targetPanel) {
+    targetPanel.classList.add('open');
+    targetPanel.style.display = 'block';
+    targetPanel.setAttribute('aria-hidden', 'false');
+  }
+}
+
+function closeAllTabs() {
+  // Remove active state from all tabs
+  Object.values(tabs).forEach(btn => {
+    btn.classList.remove('active');
+    btn.setAttribute('aria-selected', 'false');
+  });
+  
+  // Hide all panels
+  document.querySelectorAll('.panel, #combatPanel, #settingsPanel').forEach(panel => {
+    panel.classList.remove('open');
+    panel.style.display = 'none';
+    panel.setAttribute('aria-hidden', 'true');
+  });
+  
+  currentOpenTab = null;
+}
+
+// === EVENT LISTENERS FOR TABS ===
+tabs.shop.onclick = () => openTab('shop');
+tabs.skillTree.onclick = () => openTab('skillTree');
+tabs.combat.onclick = () => openTab('combat');
+tabs.settings.onclick = () => openTab('settings');
+
+// Optional: Add ESC key to close panels
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && currentOpenTab) {
+    closeAllTabs();
+  }
+});
+
+// Start the game!
+init();
+
+})();
+</script>
+
+</body>
+</html>
